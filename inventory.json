@@ -1,0 +1,50 @@
+[
+    {
+      "id": 1,
+      "category": "Mobile Phone",
+      "brand": "Apple",
+      "product_name": "iPhone 14",
+      "model": "A2649",
+      "storage": "128GB",
+      "color": "Midnight",
+      "price": 1200,
+      "stock": 5,
+      "description": "iPhone 14 128GB, Midnight color with FaceID support"
+    },
+    {
+      "id": 2,
+      "category": "Laptop",
+      "brand": "Apple",
+      "product_name": "MacBook Air M2",
+      "model": "A2681",
+      "storage": "256GB SSD",
+      "ram": "8GB",
+      "price": 1500,
+      "stock": 3,
+      "description": "13-inch MacBook Air with M2 chip, 8GB RAM and 256GB SSD"
+    },
+    {
+      "id": 3,
+      "category": "Tablet",
+      "brand": "Samsung",
+      "product_name": "Samsung Tab S6",
+      "model": "SM-T860",
+      "storage": "128GB",
+      "price": 600,
+      "stock": 2,
+      "description": "Samsung Galaxy Tab S6, 10.5 inch display, 128GB storage"
+    },
+    {
+      "id": 4,
+      "category": "Laptop",
+      "brand": "Dell",
+      "product_name": "Dell XPS 13",
+      "model": "9300",
+      "storage": "512GB SSD",
+      "ram": "16GB",
+      "price": 1400,
+      "stock": 0,
+      "description": "Dell XPS 13, 10th Gen i7, 16GB RAM, 512GB SSD"
+    }
+  ]
+  
