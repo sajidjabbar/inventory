@@ -1,0 +1,114 @@
+{
+    "name": "Inventory Auto Reply (Clean)",
+    "nodes": [
+      {
+        "parameters": {
+          "pollTimes": {
+            "item": [
+              { "mode": "everyMinute" }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.gmailTrigger",
+        "typeVersion": 1.2,
+        "position": [0, 0],
+        "name": "Gmail Trigger",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "YOUR_CREDENTIAL_ID",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "https://raw.githubusercontent.com/sajidjabbar/inventory/refs/heads/main/inventory.json"
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [200, 0],
+        "name": "HTTP Request"
+      },
+      {
+        "parameters": {
+          "jsCode": "const rawData = items[0].json.data;\nlet inventory;\ntry {\n  inventory = JSON.parse(rawData);\n} catch (error) {\n  return [{ json: { id: 0, found: false } }];\n}\n\nconst emailBody = $items(\"Gmail Trigger\", 0, 0).json.textPlain || '';\nconst searchTerm = emailBody.toLowerCase();\n\nconst found = inventory.find(item =>\n  item.product_name.toLowerCase().includes(searchTerm)\n);\n\nreturn [{ json: found || { id: 0, found: false } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [400, 0],
+        "name": "Search Product"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "conditions": [
+              {
+                "leftValue": "={{ $json[\"id\"] }}",
+                "rightValue": 0,
+                "operator": { "type": "number", "operation": "gt" }
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [600, 0],
+        "name": "If Found"
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $items(\"Gmail Trigger\", 0, 0).json.from }}",
+          "subject": "Product Available - {{ $json[\"product_name\"] }}",
+          "emailType": "text",
+          "message": "={{ \"Hi,\\n\\nThe product you requested is available.\\n\\nName: \" + $json[\"product_name\"] + \"\\nModel: \" + $json[\"model\"] + \"\\nPrice: $\" + $json[\"price\"] + \"\\nStock: \" + $json[\"stock\"] + \"\\n\\nRegards,\\nInventory Bot\" }}"
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [800, -100],
+        "name": "Send Gmail Found",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "YOUR_CREDENTIAL_ID",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $items(\"Gmail Trigger\", 0, 0).json.from }}",
+          "subject": "Product Not Found",
+          "emailType": "text",
+          "message": "Hi,\n\nThe product you requested is currently not available.\n\nRegards,\nInventory Bot"
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [800, 100],
+        "name": "Send Gmail Not Found",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "YOUR_CREDENTIAL_ID",
+            "name": "Gmail account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Gmail Trigger": {
+        "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]]
+      },
+      "HTTP Request": {
+        "main": [[{ "node": "Search Product", "type": "main", "index": 0 }]]
+      },
+      "Search Product": {
+        "main": [[{ "node": "If Found", "type": "main", "index": 0 }]]
+      },
+      "If Found": {
+        "main": [
+          [{ "node": "Send Gmail Found", "type": "main", "index": 0 }],
+          [{ "node": "Send Gmail Not Found", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false
+  }
+  

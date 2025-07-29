@@ -1,0 +1,231 @@
+{
+  "name": "inventory auto reply",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/sajidjabbar/inventory/refs/heads/main/inventory.json",
+        "options": {
+          "batching": {
+            "batch": {}
+          },
+          "response": {
+            "response": {}
+          },
+          "proxy": ""
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e617170b-bd61-4c9a-87e4-9884fc67d40f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw data string\nconst rawData = items[0].json.data;\n\n// Parse JSON\nlet inventory;\ntry {\n  inventory = JSON.parse(rawData);\n} catch (error) {\n  return [{\n    json: { id: 0, found: false, error: \"Invalid JSON\" }\n  }];\n}\n\n// Example search (user query)\nconst searchTerm = \"dubai\".toLowerCase();\n\nconst found = inventory.find(item =>\n  (item.office_name && item.office_name.toLowerCase().includes(searchTerm)) ||\n  (item.company && item.company.toLowerCase().includes(searchTerm))\n);\n\nreturn [{\n  json: found || { id: 0, found: false }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "aa8e8f87-290e-43ad-87d9-d25111c924c4",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fa494590-8cfc-4159-8e35-562c2e06bfff",
+              "leftValue": "={{ $json[\"id\"] }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "ef33bd99-0871-4d20-8f9b-44e14a2fd7e3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "sajid.jabbar@aihorizonllc.com",
+        "toEmail": "sajid.inoviotech@gmail.com",
+        "subject": "Product Not Found",
+        "emailFormat": "text",
+        "text": "Hi,\n\nThe product you requested is currently not available.\n\nRegards,\nInventory Bot\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        256
+      ],
+      "id": "f7ce8128-e13b-4449-93d8-0fa0a4719bca",
+      "name": "Send email2",
+      "webhookId": "0a7fe8e6-8f21-47cc-bbc0-4064fbe41a6f",
+      "credentials": {
+        "smtp": {
+          "id": "RN4VMHT7n8wZGVzV",
+          "name": "SMTP account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "sajid.inoviotech@gmail.com",
+        "subject": "=Office Location Found - {{ $json[\"office_name\"] }}\n",
+        "emailType": "text",
+        "message": "={{\n  \"Hi,\\n\\nThe office you requested is available.\\n\\n\" +\n  \"Office: \" + $json[\"office_name\"] + \"\\n\" +\n  \"Company: \" + $json[\"company\"] + \"\\n\" +\n  \"Code: \" + $json[\"code\"] + \"\\n\" +\n  \"Address: \" + $json[\"address\"] + \"\\n\" +\n  \"Phone: \" + $json[\"phone\"] + \"\\n\" +\n  ($json[\"email\"] ? \"Email: \" + $json[\"email\"] + \"\\n\" : \"\") +\n  \"\\nRegards,\\nInventory Bot\"\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        -208
+      ],
+      "id": "8a4fb56f-8e30-4bbe-aeec-5521dbb03864",
+      "name": "Send a message",
+      "webhookId": "912ca917-0506-4103-bd27-fa102ca1a13c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "smlLKx1bgvQgT0Nj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "sajid.inoviotech@gmail.com",
+        "subject": "Product Not Found",
+        "emailType": "text",
+        "message": "Hi,  The product you requested is currently not available.  Regards, Inventory Bot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        896,
+        32
+      ],
+      "id": "583b627b-f737-4877-b55c-c0ef6fb55a12",
+      "name": "Send a message1",
+      "webhookId": "c241a0b6-84d6-437d-8cc7-69b3aa17b61c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "smlLKx1bgvQgT0Nj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d4958c89-87b5-4240-8844-a7ba396d4fa4",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "smlLKx1bgvQgT0Nj",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send email2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "91527f79-b501-4b10-93be-5697a4818e3c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6408f880cb7ced8e7bc65f89b4dfd3b6e723b28aeb2a30fdbfa79c667421170b"
+  },
+  "id": "sAzJknOAjP9auiGN",
+  "tags": []
+}
